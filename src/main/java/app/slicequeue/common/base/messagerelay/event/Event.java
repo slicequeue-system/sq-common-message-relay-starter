@@ -1,7 +1,9 @@
 package app.slicequeue.common.base.messagerelay.event;
 
-import app.slicequeue.sq_user.common.util.DataSerializer;
+import app.slicequeue.common.base.messagerelay.util.DataSerializer;
 import lombok.Getter;
+
+import java.util.Map;
 
 /**
  * 이벤트 통신을 위한 클래스
@@ -24,22 +26,30 @@ public class Event <T extends EventPayload>{
         return DataSerializer.serialize(this);
     }
 
-    public static Event<EventPayload> fromJson(String json) {
+    public static Event<EventPayload> fromJson(String json, EventTypeRegistry eventTypeRegistry) {
         EventRaw eventRaw = DataSerializer.deserialize(json, EventRaw.class);
-        if (eventRaw == null) {
-            return null;
-        }
+        if (eventRaw == null) return null;
+
+        EventType type = eventTypeRegistry.find(eventRaw.getTypeCode())
+                .orElseThrow(() -> new IllegalArgumentException("Unknown event type: " + eventRaw.getType()));
+
         Event<EventPayload> event = new Event<>();
         event.eventId = eventRaw.getEventId();
-        event.type = EventType.from(eventRaw.getType());
-        event.payload = DataSerializer.deserialize(eventRaw.getPayload(), event.type.getPayloadClass());
+        event.type = type;
+        event.payload = DataSerializer.deserialize(eventRaw.getPayload(), type.getPayloadClass());
         return event;
     }
 
     @Getter
     public static class EventRaw {
         private Long eventId;
-        private String type;
+        private Map<String, Object> type;
         private Object payload;
+
+        public String getTypeCode() {
+            Object code = type.get("code");
+            if (code == null) throw  new IllegalArgumentException("Event type code value is null");
+            return (String) code;
+        }
     }
 }

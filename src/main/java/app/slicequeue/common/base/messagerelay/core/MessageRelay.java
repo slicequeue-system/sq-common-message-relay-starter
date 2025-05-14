@@ -53,7 +53,7 @@ public class MessageRelay {
     private void publishEvent(Outbox outbox) {
         try {
             messageRelayKafkaTemplate.send(
-                    outbox.getEventType().getTopic(),
+                    outbox.getEventTypeTopic(),
                     String.valueOf(outbox.getShardKey()),
                     outbox.getPayload()
             ).get(1, TimeUnit.SECONDS);
