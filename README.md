@@ -1,4 +1,3 @@
-
 # 📦 sq-common-message-relay-starter
 
 **Kafka 기반 Outbox 이벤트 릴레이 모듈**  
@@ -27,7 +26,7 @@ Spring Boot 3.1+ / Hibernate 6 환경에 최적화되어 있으며, Kafka 메시
 [ Kafka 전송 ]
      ↓
 [ 전송 성공 시 삭제 or 무시 ]
-```
+````
 
 ---
 
@@ -38,7 +37,7 @@ Spring Boot 3.1+ / Hibernate 6 환경에 최적화되어 있으며, Kafka 메시
 ```groovy
 dependencies {
     implementation("app.slicequeue:sq-common-message-relay-starter:0.0.3")
-    implementation("app.slicequeue:sq-common-snowflake:0.0.1") // ID 생성기 (필수)
+    implementation("app.slicequeue:sq-common-snowflake:0.0.1")
 }
 ```
 
@@ -57,30 +56,29 @@ spring:
       enable-auto-commit: false
 
 message-relay:
-  core-pool-size: 16       # 메시지 전송 executor core 쓰레드 수
-  max-pool-size: 32        # 최대 쓰레드 수 (burst 대응)
-  queue-capacity: 200      # 큐 용량 (작업 적체 허용량)
-  thread-name-prefix: relay-worker- # 쓰레드 이름 prefix (디버깅용)
+  core-pool-size: 16
+  max-pool-size: 32
+  queue-capacity: 200
+  thread-name-prefix: relay-worker-
 ```
 
-> 📌 Kafka 설정은 사용하는 쪽에서 반드시 지정해야 하며, 위 설정은 기본적인 consumer 구성 예시입니다.
+> Kafka 설정은 사용하는 쪽에서 반드시 구성해야 하며, Kafka 토픽은 사전에 생성되어 있어야 합니다.
 
 ---
 
 ### 3. JPA 연동 설정 (충돌 회피 필수)
 
-> Outbox 테이블과 Repository는 별도 모듈에 정의되어 있으므로,  
-> 사용하는 프로젝트에서 **JPA Repository 스캔 충돌을 방지하기 위해 반드시 명시적 경로 지정**이 필요합니다.
+> ✅ **starter를 사용하는 경우 반드시 아래 경로를 명시해야 합니다.**
 
 ```java
 @Configuration
 @EnableJpaRepositories(basePackages = {
-    "com.path.your_package...",               // 사용하는 쪽 리포지토리 스캔 정보
-    "app.slicequeue.common.base.messagerelay.domain"          // starter Repository
+    "com.path.your_package...",                       // 사용자 Repository
+    "app.slicequeue.common.base.messagerelay.domain"  // starter Repository
 })
 @EntityScan(basePackages = {
-    "app.path.your_package...",              // 사용하는 쪽 엔티티 스캔경로
-    "app.slicequeue.common.base.messagerelay.domain"           // starter Entity
+    "app.path.your_package...",                       // 사용자 Entity
+    "app.slicequeue.common.base.messagerelay.domain"  // starter Entity
 })
 public class JpaConfig {}
 ```
@@ -98,12 +96,13 @@ spring:
       ddl-auto: update
 ```
 
-#### (2) 수동 생성 SQL
+#### (2) 수동 생성 SQL (정확한 필드 구조)
 
 ```sql
 CREATE TABLE outbox (
     outbox_id BIGINT NOT NULL,
-    event_type VARCHAR(255),
+    event_type_code VARCHAR(255),
+    event_type_topic VARCHAR(255),
     payload TEXT,
     shard_key BIGINT,
     created_at TIMESTAMP(6),
@@ -111,9 +110,11 @@ CREATE TABLE outbox (
 );
 ```
 
+> `event_type_code`와 `event_type_topic`은 EventType 인터페이스의 `getCode()`, `getTopic()`으로부터 분리되어 저장됩니다.
+
 ---
 
-### 5. EventType 등록
+### 5. EventType 등록 및 구현
 
 ```java
 @Configuration
@@ -123,9 +124,25 @@ public class MyEventTypeConfig {
         registry.register(UserEventType.USER_INFO_CHANGED);
     }
 }
-```
 
-> `EventType`은 enum 또는 class 형태로 정의되며, Kafka 토픽명과 payload 매핑 정보를 포함합니다.
+public enum UserEventType implements EventType {
+    USER_INFO_CHANGED("user.info.changed", "user-topic", UserInfoChangedPayload.class);
+
+    private final String code;
+    private final String topic;
+    private final Class<? extends EventPayload> payloadClass;
+
+    UserEventType(String code, String topic, Class<? extends EventPayload> payloadClass) {
+        this.code = code;
+        this.topic = topic;
+        this.payloadClass = payloadClass;
+    }
+
+    @Override public String getCode() { return code; }
+    @Override public String getTopic() { return topic; }
+    @Override public Class<? extends EventPayload> getPayloadClass() { return payloadClass; }
+}
+```
 
 ---
 
@@ -139,35 +156,76 @@ eventPublisher.publish(
 );
 ```
 
-> 내부적으로 Outbox 테이블에 저장되고, 트랜잭션 커밋 이후 Kafka로 비동기 전송됩니다.
-
 ---
 
 ## 📦 구성 모듈 설명
 
-| 구성 요소 | 설명 |
-|-----------|------|
-| `Outbox`, `OutboxRepository` | 트랜잭션 내 이벤트를 저장하는 JPA 엔티티 |
-| `OutboxEventPublisher` | 서비스 로직에서 직접 호출하는 발행 지점 |
-| `MessageRelay` | Kafka로 이벤트 발송 및 실패 재시도 로직 |
-| `EventTypeRegistry` | 타입별 Payload 매핑을 관리하는 중앙 레지스트리 |
-| `MessageRelayAutoConfig` | Kafka, Executor, Scheduling 자동 구성 등록 |
+| 구성 요소                        | 설명                                   |
+| ---------------------------- | ------------------------------------ |
+| `Outbox`, `OutboxRepository` | 트랜잭션 내 이벤트를 저장하는 JPA 엔티티             |
+| `OutboxEventPublisher`       | 서비스 로직에서 직접 호출하는 발행 지점               |
+| `MessageRelay`               | Kafka로 이벤트 발송 및 실패 자동 재시도            |
+| `EventTypeRegistry`          | 타입별 Payload 매핑을 관리하는 중앙 레지스트리        |
+| `MessageRelayAutoConfig`     | Kafka, Executor, Scheduling 자동 구성 등록 |
+
+---
+
+## ⚙️ 설정 안내: Artifactory 인증 및 Gradle 구성
+
+이 라이브러리는 Slicequeue 내부 Artifactory를 통해 배포되고 있습니다.
+
+### 1. 인증 정보 설정
+
+```properties
+ARTIFACTORY_USER=your-username
+ARTIFACTORY_PASSWORD=your-password
+```
+
+> 계정은 Slicequeue 내부 시스템을 통해 발급되며, 관련 문의는 기술팀에 요청해주세요.
+
+---
+
+### 2. build.gradle에 repository 추가
+
+```groovy
+repositories {
+    mavenCentral()
+    maven {
+        url = uri("https://af.slicequeue.app/artifactory/gradle-dev")
+        credentials {
+            username = findProperty("ARTIFACTORY_USER") as String
+            password = findProperty("ARTIFACTORY_PASSWORD") as String
+        }
+    }
+}
+```
+
+---
+
+### 3. 전체 예시
+
+```groovy
+dependencies {
+    implementation("app.slicequeue:sq-common-message-relay-starter:0.0.3")
+    implementation("app.slicequeue:sq-common-snowflake:0.0.1")
+}
+```
 
 ---
 
 ## 📍 다음 단계 (예고)
 
-향후 버전에서는 다음 기능을 지원할 예정입니다:
-
-- [ ] Flyway 기반의 outbox 테이블 자동 마이그레이션 SQL 제공
-- [ ] Kafka 메시지 consumer 예제 연동 모듈 분리
-- [ ] 운영환경을 고려한 dead-letter 및 retry 큐 확장 설계
+* [ ] Flyway 기반의 outbox 테이블 자동 마이그레이션 SQL 제공
+* [ ] Kafka 메시지 consumer 예제 연동 모듈 분리
+* [ ] 운영환경을 고려한 dead-letter 및 retry 큐 확장 설계
 
 ---
 
-> 실전 환경에서 Kafka 기반 이벤트 아키텍처가 필요한 경우,  
-> 이 starter 하나로 안정성과 확장성을 동시에 확보할 수 있도록 사용해가며 더 확장해 나갈 계획
+> 실전 환경에서 Kafka 기반 이벤트 아키텍처가 필요한 경우,
+> 이 starter 하나로 안정성과 확장성을 동시에 확보할 수 있도록 사용해가며 더 확장해 나갈 계획입니다.
 
-## 🔍 참고 
-- 이 개발 내용은 인프런 [쿠케 "스프링부트로 직접 만들면서 배우는 대규모 시스템 설계 - 게시판"](https://www.inflearn.com/course/%EC%8A%A4%ED%94%84%EB%A7%81%EB%B6%80%ED%8A%B8%EB%A1%9C-%EB%8C%80%EA%B7%9C%EB%AA%A8-%EC%8B%9C%EC%8A%A4%ED%85%9C%EC%84%A4%EA%B3%84-%EA%B2%8C%EC%8B%9C%ED%8C%90) 강의를 참고하여 개발했습니다.
+---
 
+## 🔍 참고
+
+이 개발 내용은 인프런 [쿠케 "스프링부트로 직접 만들면서 배우는 대규모 시스템 설계 - 게시판"](https://www.inflearn.com/course/%EC%8A%A4%ED%94%84%EB%A7%81%EB%B6%80%ED%8A%B8%EB%A1%9C-%EB%8C%80%EA%B7%9C%EB%AA%A8-%EC%8B%9C%EC%8A%A4%ED%85%9C%EC%84%A4%EA%B3%84-%EA%B2%8C%EC%8B%9C%ED%8C%90) 강의를 참고하여 개발되었습니다.
