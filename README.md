@@ -181,7 +181,7 @@ ARTIFACTORY_USER=your-username
 ARTIFACTORY_PASSWORD=your-password
 ```
 
-> 계정은 Slicequeue 내부 시스템을 통해 발급되며, 관련 문의는 기술팀에 요청해주세요.
+> 계정은 Slicequeue 내부 시스템을 통해 발급되며, 관련 문의는 slicequeue@gmail.com 에 요청해주세요.
 
 ---
 
