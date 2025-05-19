@@ -21,7 +21,7 @@ import java.util.concurrent.Executors;
 @Configuration
 @ComponentScan("app.slicequeue.sq_user.common.outbox_relay")
 @EnableScheduling
-public class MessageRelayConfig {
+public class MessageRelayAutoConfig {
 
     @Value("${spring.kafka.bootstrap-servers}")
     private String bootstrapServers;
@@ -37,11 +37,11 @@ public class MessageRelayConfig {
     }
 
     @Bean
-    public Executor messageRelayPublishEventExecutor() { // 트렌젝션이 끝날때 마다 비동기로 이벤트 전송할때 사용
+    public Executor messageRelayPublishEventExecutor(MessageRelayProperties props) { // 트렌젝션이 끝날때 마다 비동기로 이벤트 전송할때 사용
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(20);
-        executor.setMaxPoolSize(50);
-        executor.setQueueCapacity(100);
+        executor.setCorePoolSize(props.getCorePoolSize());
+        executor.setMaxPoolSize(props.getMaxPoolSize());
+        executor.setQueueCapacity(props.getQueueCapacity());
         executor.setThreadNamePrefix("mr-pub-event-");
         return executor;
     }
