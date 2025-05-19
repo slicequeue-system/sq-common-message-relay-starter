@@ -20,7 +20,6 @@ import java.util.concurrent.Executors;
 
 @EnableAsync
 @Configuration
-@ComponentScan("app.slicequeue.common.base.messagerelay")
 @EnableScheduling
 @EnableConfigurationProperties(MessageRelayProperties.class)
 public class MessageRelayAutoConfig {
