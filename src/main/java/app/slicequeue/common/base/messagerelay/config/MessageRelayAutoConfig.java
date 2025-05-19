@@ -3,6 +3,7 @@ package app.slicequeue.common.base.messagerelay.config;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -19,8 +20,9 @@ import java.util.concurrent.Executors;
 
 @EnableAsync
 @Configuration
-@ComponentScan("app.slicequeue.sq_user.common.outbox_relay")
+@ComponentScan("app.slicequeue.common.base.messagerelay")
 @EnableScheduling
+@EnableConfigurationProperties(MessageRelayProperties.class)
 public class MessageRelayAutoConfig {
 
     @Value("${spring.kafka.bootstrap-servers}")
