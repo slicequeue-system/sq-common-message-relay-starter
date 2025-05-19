@@ -63,7 +63,7 @@ publishing {
         mavenJava(MavenPublication) {
             from components.java
             groupId = 'app.slicequeue'
-            artifactId = 'sq-common-base-time-entity'
+            artifactId = 'sq-common-message-relay-starter'
             version = project.version.toString()
         }
     }
