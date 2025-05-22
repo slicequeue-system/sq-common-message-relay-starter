@@ -3,6 +3,7 @@
 **Kafka 기반 Outbox 이벤트 릴레이 모듈**  
 트랜잭션 로그를 안전하게 Kafka로 발행하기 위한 Outbox 패턴 기반의 메시지 릴레이 구성입니다.  
 Spring Boot 3.1+ / Hibernate 6 환경에 최적화되어 있으며, Kafka 메시지 브로커 기반의 **확장 가능하고 신뢰성 높은 비동기 아키텍처**를 구현할 수 있습니다.
+메세지 릴레이 코디네이터를 통해 스케일 아웃 환경에서도 안정성 있게 기능제공을 할수 있습니다. 이를 위해서는 레디스 환경이 필요합니다. 
 
 ---
 
@@ -54,15 +55,22 @@ spring:
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       enable-auto-commit: false
+  redis:
+    host: localhost
+    port: 6379
 
 message-relay:
   core-pool-size: 16
   max-pool-size: 32
   queue-capacity: 200
   thread-name-prefix: relay-worker-
+  shard-count: 16
+  app-id: instance-A
+  all-app-ids: instance-A,instance-B,instance-C
 ```
 
 > Kafka 설정은 사용하는 쪽에서 반드시 구성해야 하며, Kafka 토픽은 사전에 생성되어 있어야 합니다.
+> Redis 설정은 메세지 릴레이 코디네이터를 통해 스케일 아웃 환경에서도 안정성 있게 기능제공을 하는 용도로 활용합니다.
 
 ---
 
@@ -215,9 +223,8 @@ dependencies {
 
 ## 📍 다음 단계 (예고)
 
-* [ ] Flyway 기반의 outbox 테이블 자동 마이그레이션 SQL 제공
-* [ ] Kafka 메시지 consumer 예제 연동 모듈 분리
-* [ ] 운영환경을 고려한 dead-letter 및 retry 큐 확장 설계
+* https://github.com/slicequeue-system/sq-common-message-relay-starter/issues/3
+
 
 ---
 
