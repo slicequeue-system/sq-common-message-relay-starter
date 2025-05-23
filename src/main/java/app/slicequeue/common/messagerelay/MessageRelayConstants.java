@@ -1,4 +1,4 @@
-package app.slicequeue.common.base.messagerelay;
+package app.slicequeue.common.messagerelay;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;

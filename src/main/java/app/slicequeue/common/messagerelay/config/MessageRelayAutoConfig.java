@@ -1,4 +1,4 @@
-package app.slicequeue.common.base.messagerelay.config;
+package app.slicequeue.common.messagerelay.config;
 
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
@@ -22,6 +22,7 @@ import java.util.concurrent.Executors;
 @Configuration
 @EnableScheduling
 @EnableConfigurationProperties(MessageRelayProperties.class)
+@ComponentScan(basePackages = "app.slicequeue.common.messagerelay")
 public class MessageRelayAutoConfig {
 
     @Value("${spring.kafka.bootstrap-servers}")

@@ -1,4 +1,4 @@
-package app.slicequeue.common.base.messagerelay.config;
+package app.slicequeue.common.messagerelay.config;
 
 import lombok.Getter;
 import lombok.Setter;

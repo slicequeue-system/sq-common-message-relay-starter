@@ -1,8 +1,8 @@
-package app.slicequeue.common.base.messagerelay.publisher;
+package app.slicequeue.common.messagerelay.publisher;
 
-import app.slicequeue.common.base.messagerelay.MessageRelayConstants;
-import app.slicequeue.common.base.messagerelay.outbox.Outbox;
-import app.slicequeue.common.base.messagerelay.outbox.OutboxEvent;
+import app.slicequeue.common.messagerelay.MessageRelayConstants;
+import app.slicequeue.common.messagerelay.outbox.Outbox;
+import app.slicequeue.common.messagerelay.outbox.OutboxEvent;
 import app.slicequeue.common.snowflake.Snowflake;
 import app.slicequeue.event.domain.Event;
 import app.slicequeue.event.domain.EventDescriptor;
@@ -14,7 +14,6 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class OutboxEventPublisher {
-    private final Snowflake outboxIdSnowflake = new Snowflake();
     private final Snowflake eventIdSnowflake = new Snowflake();
     private final ApplicationEventPublisher applicationEventPublisher;
 

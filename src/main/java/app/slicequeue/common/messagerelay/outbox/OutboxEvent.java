@@ -1,4 +1,4 @@
-package app.slicequeue.common.base.messagerelay.outbox;
+package app.slicequeue.common.messagerelay.outbox;
 
 import lombok.Getter;
 import lombok.ToString;

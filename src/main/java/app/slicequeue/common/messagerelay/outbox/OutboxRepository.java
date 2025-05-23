@@ -1,4 +1,4 @@
-package app.slicequeue.common.base.messagerelay.outbox;
+package app.slicequeue.common.messagerelay.outbox;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

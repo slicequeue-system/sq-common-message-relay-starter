@@ -1,6 +1,6 @@
-package app.slicequeue.common.base.messagerelay.relay;
+package app.slicequeue.common.messagerelay.relay;
 
-import app.slicequeue.common.base.messagerelay.MessageRelayConstants;
+import app.slicequeue.common.messagerelay.MessageRelayConstants;
 import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;

@@ -1,8 +1,8 @@
-package app.slicequeue.common.base.messagerelay.relay;
+package app.slicequeue.common.messagerelay.relay;
 
-import app.slicequeue.common.base.messagerelay.outbox.Outbox;
-import app.slicequeue.common.base.messagerelay.outbox.OutboxEvent;
-import app.slicequeue.common.base.messagerelay.outbox.OutboxRepository;
+import app.slicequeue.common.messagerelay.outbox.Outbox;
+import app.slicequeue.common.messagerelay.outbox.OutboxEvent;
+import app.slicequeue.common.messagerelay.outbox.OutboxRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
