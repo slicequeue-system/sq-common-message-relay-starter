@@ -82,11 +82,11 @@ message-relay:
 @Configuration
 @EnableJpaRepositories(basePackages = {
     "com.path.your_package...",                       // 사용자 Repository
-    "app.slicequeue.common.base.messagerelay.domain"  // starter Repository
+    "app.slicequeue.common.messagerelay.domain"  // starter Repository
 })
 @EntityScan(basePackages = {
     "app.path.your_package...",                       // 사용자 Entity
-    "app.slicequeue.common.base.messagerelay.domain"  // starter Entity
+    "app.slicequeue.common.messagerelay.domain"  // starter Entity
 })
 public class JpaConfig {}
 ```
