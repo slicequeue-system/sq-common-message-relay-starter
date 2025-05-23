@@ -1,6 +1,6 @@
-package app.slicequeue.common.base.messagerelay.domain;
+package app.slicequeue.common.base.messagerelay.outbox;
 
-import app.slicequeue.common.base.messagerelay.event.EventType;
+import app.slicequeue.event.domain.EventDescriptor;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -12,7 +12,11 @@ import java.time.Instant;
 @Getter
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Outbox {
+public class
+
+
+
+Outbox {
 
     @EmbeddedId
     @AttributeOverride(name = "id", column = @Column(name = "outbox_id"))
@@ -23,7 +27,7 @@ public class Outbox {
     private Long shardKey;
     private Instant createdAt;
 
-    public static Outbox create(EventType eventType, String payload, Long shardKey) {
+    public static Outbox create(EventDescriptor eventType, String payload, Long shardKey) {
         Outbox outbox = new Outbox();
         outbox.outboxId = OutboxId.generateId();
         outbox.eventTypeCode = eventType.getCode();

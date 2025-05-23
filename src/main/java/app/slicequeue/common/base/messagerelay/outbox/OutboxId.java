@@ -1,4 +1,4 @@
-package app.slicequeue.common.base.messagerelay.domain;
+package app.slicequeue.common.base.messagerelay.outbox;
 
 import app.slicequeue.common.base.id_entity.BaseSnowflakeId;
 import app.slicequeue.common.base.id_entity.SnowflakeFactory;

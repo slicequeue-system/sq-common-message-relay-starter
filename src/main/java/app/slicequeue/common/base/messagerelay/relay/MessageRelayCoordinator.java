@@ -1,4 +1,4 @@
-package app.slicequeue.common.base.messagerelay.core;
+package app.slicequeue.common.base.messagerelay.relay;
 
 import app.slicequeue.common.base.messagerelay.MessageRelayConstants;
 import jakarta.annotation.PreDestroy;
